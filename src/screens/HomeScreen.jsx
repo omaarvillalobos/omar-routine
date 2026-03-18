@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import CigarroHabit from '../components/CigarroHabit'
 import HabitCard from '../components/HabitCard'
+import { getTodayKey, getDayData, saveDay, getCigarroStreak } from '../hooks/useHabits'
 
-// Datos hardcodeados para ver el diseño
 const HABITOS_FASE_1 = [
   { id: 'alarma', nombre: 'Alarma 7:40, sin snooze' },
   { id: 'cama', nombre: 'Hacer la cama' },
@@ -18,31 +18,40 @@ function getFechaHoy() {
 }
 
 export default function HomeScreen() {
-  const [cigarroEstado, setCigarroEstado] = useState(null)
-  const [habitos, setHabitos] = useState({
-    alarma: null,
-    cama: null,
-    ejercicio: null,
-    pantallas: null,
-  })
-  const [nota, setNota] = useState('')
-  const [guardado, setGuardado] = useState(false)
+  const todayKey = getTodayKey()
+  const saved = getDayData(todayKey)
 
-  const rachaSimulada = 4
+  const [cigarroEstado, setCigarroEstado] = useState(
+    saved.habits.cigarro !== undefined ? saved.habits.cigarro : null
+  )
+  const [habitos, setHabitos] = useState({
+    alarma: saved.habits.alarma !== undefined ? saved.habits.alarma : null,
+    cama: saved.habits.cama !== undefined ? saved.habits.cama : null,
+    ejercicio: saved.habits.ejercicio !== undefined ? saved.habits.ejercicio : null,
+    pantallas: saved.habits.pantallas !== undefined ? saved.habits.pantallas : null,
+  })
+  const [nota, setNota] = useState(saved.note || '')
+  const [guardado, setGuardado] = useState(false)
+  const [racha, setRacha] = useState(getCigarroStreak())
 
   function toggleHabito(id, valor) {
     setHabitos(prev => ({ ...prev, [id]: valor }))
     setGuardado(false)
   }
 
-  // Conteo de hábitos completados (cigarro incluido)
   const totalHabitos = HABITOS_FASE_1.length + 1
   const cumplidos = [cigarroEstado === true, ...HABITOS_FASE_1.map(h => habitos[h.id] === true)].filter(Boolean).length
   const progresoPct = Math.round((cumplidos / totalHabitos) * 100)
   const todosCompletos = cumplidos === totalHabitos
 
   function handleGuardar() {
+    const habitsToSave = {
+      cigarro: cigarroEstado,
+      ...habitos,
+    }
+    saveDay(todayKey, habitsToSave, nota)
     setGuardado(true)
+    setRacha(getCigarroStreak())
   }
 
   return (
@@ -67,7 +76,7 @@ export default function HomeScreen() {
       {/* Habito principal: Cigarro */}
       <CigarroHabit
         estado={cigarroEstado}
-        racha={rachaSimulada}
+        racha={racha}
         onToggle={(val) => { setCigarroEstado(val); setGuardado(false) }}
       />
 
@@ -127,7 +136,6 @@ export default function HomeScreen() {
           }} />
         </div>
 
-        {/* Celebración */}
         {todosCompletos && (
           <div style={{
             marginTop: '12px',
@@ -140,7 +148,7 @@ export default function HomeScreen() {
             fontWeight: '500',
             color: '#00D97E',
           }}>
-            Dia completo. Bien hecho.
+            Día completo. Bien hecho.
           </div>
         )}
       </div>

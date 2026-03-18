@@ -7,6 +7,12 @@ import TabBar from './components/TabBar'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('hoy')
+  const [tabVersion, setTabVersion] = useState(0)
+
+  function handleTabChange(tab) {
+    setActiveTab(tab)
+    setTabVersion(v => v + 1)
+  }
 
   return (
     <div style={{
@@ -18,21 +24,19 @@ export default function App() {
       backgroundColor: '#0A0A0A',
       position: 'relative',
     }}>
-      {/* Contenido principal scrolleable */}
       <div style={{
         flex: 1,
         overflowY: 'auto',
         overflowX: 'hidden',
         paddingBottom: '72px',
       }}>
-        {activeTab === 'hoy' && <HomeScreen />}
-        {activeTab === 'historial' && <HistorialScreen />}
-        {activeTab === 'plan' && <PlanScreen />}
-        {activeTab === 'notas' && <NotasScreen />}
+        {activeTab === 'hoy' && <HomeScreen key={`hoy-${tabVersion}`} />}
+        {activeTab === 'historial' && <HistorialScreen key={`historial-${tabVersion}`} />}
+        {activeTab === 'plan' && <PlanScreen key={`plan-${tabVersion}`} />}
+        {activeTab === 'notas' && <NotasScreen key={`notas-${tabVersion}`} />}
       </div>
 
-      {/* Tab bar fijo abajo */}
-      <TabBar activeTab={activeTab} onTabChange={setActiveTab} />
+      <TabBar activeTab={activeTab} onTabChange={handleTabChange} />
     </div>
   )
 }

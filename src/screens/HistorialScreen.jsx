@@ -1,11 +1,7 @@
-const dias = [
-  { fecha: '2026-03-17', cigarro: true, cumplidos: 4, total: 5 },
-  { fecha: '2026-03-16', cigarro: true, cumplidos: 5, total: 5 },
-  { fecha: '2026-03-15', cigarro: true, cumplidos: 3, total: 5 },
-  { fecha: '2026-03-14', cigarro: false, cumplidos: 2, total: 5 },
-  { fecha: '2026-03-13', cigarro: true, cumplidos: 5, total: 5 },
-  { fecha: '2026-03-12', cigarro: true, cumplidos: 4, total: 5 },
-]
+import { useState, useEffect } from 'react'
+import { getHistorial, getCigarroStreak } from '../hooks/useHabits'
+
+const TOTAL_HABITOS = 5
 
 function formatFecha(str) {
   const d = new Date(str + 'T00:00:00')
@@ -15,6 +11,14 @@ function formatFecha(str) {
 }
 
 export default function HistorialScreen() {
+  const [dias, setDias] = useState([])
+  const [racha, setRacha] = useState(0)
+
+  useEffect(() => {
+    setDias(getHistorial(30))
+    setRacha(getCigarroStreak())
+  }, [])
+
   return (
     <div style={{ padding: '24px 16px 8px', backgroundColor: '#0A0A0A', minHeight: '100%' }}>
       <div style={{ marginBottom: '24px' }}>
@@ -37,56 +41,67 @@ export default function HistorialScreen() {
         alignItems: 'center',
       }}>
         <span style={{ fontSize: '14px', color: '#888888' }}>Racha sin fumar</span>
-        <span style={{ fontSize: '24px', fontWeight: '600', color: '#00D97E' }}>4 días</span>
+        <span style={{ fontSize: '24px', fontWeight: '600', color: '#00D97E' }}>
+          {racha} {racha === 1 ? 'día' : 'días'}
+        </span>
       </div>
 
       {/* Lista de días */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        {dias.map(d => {
-          const pct = Math.round((d.cumplidos / d.total) * 100)
-          return (
-            <div key={d.fecha} style={{
-              backgroundColor: '#111111',
-              border: '1px solid #2A2A2A',
-              borderRadius: '16px',
-              padding: '14px 16px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-            }}>
-              {/* Cigarro indicator */}
-              <div style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: d.cigarro ? '#00D97E' : '#FF4D4D',
-                flexShrink: 0,
-              }} />
+      {dias.length === 0 ? (
+        <div style={{
+          textAlign: 'center',
+          padding: '48px 16px',
+          color: '#555555',
+          fontSize: '14px',
+        }}>
+          Todavía no hay entradas. Guarda tu primer día.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          {dias.map(d => {
+            const habits = d.habits || {}
+            const cumplidos = Object.values(habits).filter(v => v === true).length
+            const total = TOTAL_HABITOS
+            const pct = Math.round((cumplidos / total) * 100)
+            const cigarro = habits.cigarro
 
-              {/* Fecha */}
-              <span style={{ fontSize: '14px', color: '#F0F0F0', fontWeight: '500', flex: 1 }}>
-                {formatFecha(d.fecha)}
-              </span>
-
-              {/* Hábitos */}
-              <span style={{ fontSize: '13px', color: '#888888' }}>
-                {d.cumplidos}/{d.total}
-              </span>
-
-              {/* % */}
-              <span style={{
-                fontSize: '13px',
-                fontWeight: '600',
-                color: pct === 100 ? '#00D97E' : '#888888',
-                minWidth: '36px',
-                textAlign: 'right',
+            return (
+              <div key={d.fecha} style={{
+                backgroundColor: '#111111',
+                border: '1px solid #2A2A2A',
+                borderRadius: '16px',
+                padding: '14px 16px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
               }}>
-                {pct}%
-              </span>
-            </div>
-          )
-        })}
-      </div>
+                <div style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: cigarro === true ? '#00D97E' : cigarro === false ? '#FF4D4D' : '#555555',
+                  flexShrink: 0,
+                }} />
+                <span style={{ fontSize: '14px', color: '#F0F0F0', fontWeight: '500', flex: 1 }}>
+                  {formatFecha(d.fecha)}
+                </span>
+                <span style={{ fontSize: '13px', color: '#888888' }}>
+                  {cumplidos}/{total}
+                </span>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: pct === 100 ? '#00D97E' : '#888888',
+                  minWidth: '36px',
+                  textAlign: 'right',
+                }}>
+                  {pct}%
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

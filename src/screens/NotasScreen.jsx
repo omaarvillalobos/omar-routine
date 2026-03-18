@@ -1,8 +1,5 @@
-const notasEjemplo = [
-  { fecha: '2026-03-17', texto: 'Buen día. Me costó lo de las pantallas pero lo logré.' },
-  { fecha: '2026-03-16', texto: 'Entrené en la mañana. El día fluyó solo.' },
-  { fecha: '2026-03-15', texto: 'Día difícil, me dormí tarde. Hay que corregir el horario.' },
-]
+import { useState, useEffect } from 'react'
+import { getNotas } from '../hooks/useHabits'
 
 function formatFecha(str) {
   const d = new Date(str + 'T00:00:00')
@@ -12,6 +9,12 @@ function formatFecha(str) {
 }
 
 export default function NotasScreen() {
+  const [notas, setNotas] = useState([])
+
+  useEffect(() => {
+    setNotas(getNotas())
+  }, [])
+
   return (
     <div style={{ padding: '24px 16px 8px', backgroundColor: '#0A0A0A', minHeight: '100%' }}>
       <div style={{ marginBottom: '24px' }}>
@@ -21,7 +24,7 @@ export default function NotasScreen() {
         <span style={{ fontSize: '13px', color: '#888888' }}>Registro diario</span>
       </div>
 
-      {notasEjemplo.length === 0 ? (
+      {notas.length === 0 ? (
         <div style={{
           textAlign: 'center',
           padding: '48px 16px',
@@ -32,7 +35,7 @@ export default function NotasScreen() {
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          {notasEjemplo.map((n, i) => (
+          {notas.map((n, i) => (
             <div key={i} style={{
               backgroundColor: '#111111',
               border: '1px solid #2A2A2A',
